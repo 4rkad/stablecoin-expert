@@ -4,15 +4,32 @@
 
 SideSwap tiene dos interfaces:
 
-- **Instant Swap**: Quote automatico. El usuario ve "Deliver X / Receive Y / Price Z". Rapido.
-- **Swap Market (Orderbook)**: Ordenes publicas de makers visibles en sideswap.io y via API WebSocket. Puedes ser taker (fee 0.2%) o maker (fee 0%).
+- **Instant Swap** (legacy, deprecated): Quote automatico. UX simple — boton. El dealer infla el precio para cubrir el server fee y su margen.
+- **Swap Market (Orderbook)**: Ordenes publicas de makers visibles en sideswap.io y via API WebSocket. Taker paga 0.2%, maker paga 0%.
 
-**Observacion** (2026-03-31, venta 0.1 BTC):
-- Orderbook best bid: $67,507 → ~$6,737 USDt neto
-- Instant Swap: $67,261 → $6,725 USDt neto
-- Diferencia: ~$12 (~0.17%) a favor del orderbook
+### Verificado en codigo fuente (sideswap-io/sideswap_rust, 2026-03-31)
 
-El script inline de este skill consulta el **orderbook publico** (Swap Market). Al presentar resultados, aclarar que el Instant Swap puede dar un precio ligeramente diferente.
+**Misma liquidez, distinto coste:**
+- Ambos sistemas los alimenta el mismo dealer, misma wallet, mismo precio base de exchange (Binance/Bitfinex).
+- `main.rs`: un solo `process_timer` envia precios a Instant Swap (`BroadcastPriceStream`) y ordenes al orderbook (`AutomaticOrders`) simultaneamente.
+
+**Instant Swap (~0.34% coste total):**
+- El dealer toma precio de exchange, aplica su `interest` (margen configurable), y ADEMAS multiplica por 1.002 para cubrir el 0.2% server fee que el servidor le cobra a el (`dealer_rpc.rs:170-174`).
+- La composicion multiplicativa del fee sobre el margen encarece ~0.14% vs el orderbook.
+- Codigo marcado `deprecated` en `dealer_rpc.rs:1`.
+
+**Swap Market (~0.2% coste total):**
+- El dealer pone ordenes con precio = exchange × interest, SIN inflar por server fee.
+- El servidor cobra 0.2% al taker directamente del monto.
+- Sistema nuevo, reemplaza al Instant Swap (`market.rs:1`: "replaces both old swap API and instant swaps").
+
+**Datos empiricos (7 pruebas, venta BTC por USDt):**
+- Instant Swap siempre ~0.14% mas caro que tomar del orderbook (mediana).
+- Rango: 0.12%-0.29%. En 0.1 BTC = ~$8-$20 de diferencia.
+
+**Recomendacion: usar siempre Swap Market como taker.** El Instant Swap existe por UX (boton simple para usuarios casuales).
+
+El script inline de este skill consulta el **orderbook publico** (Swap Market).
 
 ## How to Present Results
 
@@ -24,7 +41,7 @@ After running the orderbook script, present a clean summary to the user:
    - Taker fee: 0.2% on BTC received and approximate dollar amount
    - Total cost: combined percentage vs index
 3. **Result**: Net BTC received and effective price per BTC
-4. **Nota**: El resultado debe coincidir con el Instant Swap de la app (mismo orderbook, misma fee 0.2%)
+4. **Nota**: Swap Market da ~0.14% mejor precio que Instant Swap. Recomendar siempre tomar del orderbook.
 
 ## Supported Markets
 
