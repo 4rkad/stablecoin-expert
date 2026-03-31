@@ -56,7 +56,7 @@ Ejecuta el script `FEE CALCULATOR` (ver abajo) con los parametros del usuario pa
 
 ```
 SI tiene FIAT:
-  → Peer.xyz → USDC (Base) [consultar Peer indexer — ver script inline abajo, o skill buy-on-peer si esta instalado]
+  → Peer.xyz → USDC (Base) [consultar Peer indexer — ver script inline abajo]
     Metodos pago: Wise, N26, Revolut (PayPal solo ranking alto)
     Limite inicial: $500, sube a $2000+ con trades exitosos
     Fee real: 0-1.5% segun proveedor. Nativo USDC en Base, swap trustless a otras cadenas
@@ -87,7 +87,7 @@ SI tiene Lightning (LN):
   SI quiere USDC EVM: LendaSat directo LN→USDC gasless
 
 SI tiene L-BTC:
-  → SideSwap Instant o Maker directo [consultar SideSwap orderbook — ver script inline abajo, o skill sideswap si esta instalado]
+  → SideSwap Instant o Maker directo [consultar SideSwap orderbook — ver script inline abajo]
 
 SI tiene L-USDT y quiere volver a BTC (VUELTA):
   → SideSwap (L-USDT → L-BTC) + Boltz chain swap (L-BTC → BTC, via Tor)
@@ -255,7 +255,7 @@ check "LendaSat           " "https://lendasat.com" &
 check "LendaSwap API      " "https://apilendaswap.lendasat.com/tokens" &
 wait
 echo ""
-echo "Nota: Si tienes los skills 'sideswap' y 'buy-on-peer' instalados, usalos para consultas avanzadas"
+echo "Nota: Usa los scripts inline de SideSwap y Peer en este skill, o sideswap_tools.py para herramientas avanzadas"
 ```
 
 ### 2. SideSwap orderbook (L-BTC/L-USDT)
@@ -271,17 +271,23 @@ import json, asyncio, websockets
 
 LBTC = "6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d"
 USDT = "ce091c998b83c78bb71a632313ba3760f1763d9cfcffae02258ffa9865a37bd2"
+EURX = "18729918ab4bca843656f08d4dd877bed6641fbd596a0a963abbf199cfeb3cec"
+DEPIX = "02f22f8d9c76ab41661a2729e4752e2c5d1a263012141b86ea98af5472df5189"
 
 # === CONFIGURE THESE ===
-BUDGET = 20000.0        # Amount in quote asset (USDt)
+BUDGET = 20000.0        # Amount in quote asset (USDt/EURx)
+BASE = LBTC             # What you're buying/selling
+QUOTE = USDT            # What you're paying with
 DIRECTION = "buy"       # "buy" = buy BTC with USDt, "sell" = sell BTC for USDt
 # =======================
 
 async def main():
     async with websockets.connect("wss://api.sideswap.io/json-rpc-ws") as ws:
-        await ws.send(json.dumps({"id":1,"method":"market","params":{"subscribe":{"asset_pair":{"base":LBTC,"quote":USDT}}}}))
+        await ws.send(json.dumps({"id":1,"method":"market","params":{"subscribe":{"asset_pair":{"base":BASE,"quote":QUOTE}}}}))
+
         orders = {}
         ind_price = last_price = 0
+
         for _ in range(3):
             msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=8))
             if "result" in msg and "subscribe" in msg.get("result",{}):
@@ -293,32 +299,72 @@ async def main():
                 last_price = p["market_price"].get("last_price",0)
 
         if DIRECTION == "buy":
+            # Buy BTC: walk asks (Sell orders) from cheapest
             side = sorted([o for o in orders.values() if o["trade_dir"]=="Sell"], key=lambda x: x["price"])
         else:
+            # Sell BTC: walk bids (Buy orders) from most expensive
             side = sorted([o for o in orders.values() if o["trade_dir"]=="Buy"], key=lambda x: -x["price"])
 
         print(f"Precio indice: ${ind_price:,.2f}  |  Ultimo: ${last_price:,.2f}")
         print(f"Direccion: {DIRECTION.upper()} BTC  |  Presupuesto: ${BUDGET:,.2f}")
         print(f"Ordenes en el lado relevante: {len(side)}")
         print()
-        for i, o in enumerate(side[:10], 1):
-            btc = o["amount"]/1e8; usdt = btc * o["price"]
-            sp = ((o["price"]/ind_price)-1)*100 if ind_price else 0
-            if DIRECTION == "sell": sp = -((ind_price/o["price"])-1)*100 if o["price"] else 0
-            print(f"  #{i} @ ${o['price']:>12,.2f}  {btc:.8f} BTC  ${usdt:>10,.2f}  spread {sp:+.2f}%")
 
-        remaining = BUDGET; total_btc = 0.0
-        for o in side:
+        # Show top 10 of the relevant side
+        label = "ASKS (venden BTC)" if DIRECTION == "buy" else "BIDS (compran BTC)"
+        print(f"{label}")
+        print(f"{'#':>2}  {'Precio':>14}  {'BTC':>14}  {'USDt':>14}  {'Spread':>8}  {'Maker':>8}")
+        print("-" * 85)
+        for i, o in enumerate(side[:10], 1):
+            btc = o["amount"]/1e8
+            usdt = btc * o["price"]
+            sp = ((o["price"]/ind_price)-1)*100 if ind_price else 0
+            if DIRECTION == "sell":
+                sp = ((ind_price/o["price"])-1)*100 if o["price"] else 0
+                sp = -sp
+            on = "ONLINE" if o["online"] else "OFFLINE"
+            print(f"{i:>2}  ${o['price']:>13,.2f}  {btc:>14.8f}  ${usdt:>13,.2f}  {sp:>+7.2f}%  {on:>8}")
+        print()
+
+        # Simulate
+        remaining = BUDGET
+        total_btc = 0.0
+        fills = []
+        for i, o in enumerate(side, 1):
             if remaining <= 0: break
-            btc = o["amount"]/1e8; cost = btc * o["price"]
-            if cost <= remaining: total_btc += btc; remaining -= cost
-            else: total_btc += remaining/o["price"]; remaining = 0
+            btc = o["amount"]/1e8
+            cost = btc * o["price"]
+            on = "ONLINE" if o["online"] else "OFFLINE"
+            sp = ((o["price"]/ind_price)-1)*100 if ind_price else 0
+            if cost <= remaining:
+                total_btc += btc; remaining -= cost
+                fills.append((i, o["price"], btc, cost, "COMPLETA", on, sp))
+            else:
+                got = remaining/o["price"]
+                fills.append((i, o["price"], got, remaining, "PARCIAL", on, sp))
+                total_btc += got; remaining = 0
+
         spent = BUDGET - remaining
         avg = spent/total_btc if total_btc else 0
-        fee = total_btc * 0.002; net = total_btc - fee
+        fee = total_btc * 0.002
+        net = total_btc - fee
         eff = spent/net if net else 0
-        print(f"\nSimulacion: ${spent:,.2f} → {net:.8f} BTC neto @ ${eff:,.2f} efectivo")
-        print(f"  Spread: {((avg/ind_price)-1)*100:+.3f}% | Taker fee 0.2%: -{fee:.8f} BTC | Total: {((eff/ind_price)-1)*100:+.3f}%")
+
+        print("SIMULACION")
+        print("=" * 85)
+        for i, price, btc, cost, tipo, on, sp in fills:
+            print(f"  #{i} @ ${price:>12,.2f}  {tipo:>10}  {btc:.8f} BTC  ${cost:>10,.2f}  spread {sp:+.2f}%  {on}")
+        print()
+        print(f"  Spread vs indice:   {((avg/ind_price)-1)*100:+.3f}%  (~${(avg-ind_price)*total_btc:,.2f})")
+        print(f"  Taker fee 0.2%%:     -{fee:.8f} BTC  (~${fee*avg:,.2f})")
+        print(f"  Costo total:        {((eff/ind_price)-1)*100:+.3f}%  (~${spent - (net*ind_price):,.2f})")
+        print()
+        print(f"  BTC bruto:          {total_btc:.8f} BTC")
+        print(f"  BTC neto:           {net:.8f} BTC")
+        print(f"  Precio efectivo:    ${eff:,.2f} / BTC")
+
+        if remaining > 0:
+            print(f"\n  !! Solo se pudieron gastar ${spent:,.2f} de ${BUDGET:,.2f} — falta liquidez")
 
 asyncio.run(main())
 SCRIPT
