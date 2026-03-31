@@ -2,17 +2,14 @@
 
 ## Instant Swap vs Swap Market (Orderbook)
 
-SideSwap tiene DOS mecanismos de swap diferentes:
+SideSwap tiene DOS interfaces para el mismo orderbook:
 
-- **Instant Swap**: Dealer del servidor. Quote fijo, ejecucion inmediata. El usuario ve "Send X / Receive Y / Price Z" en la app. No requiere esperar. El precio incluye spread + fee 0.2% todo junto.
-- **Swap Market (Orderbook)**: Ordenes publicas de makers. El taker elige ejecutar contra ordenes visibles. Fee 0.2% sobre BTC + spread variable segun orderbook.
+- **Instant Swap**: Toma automaticamente las mejores ordenes del orderbook. El usuario ve "Send X / Receive Y / Price Z" en la app. Fee 0.2% como taker. Rapido, sin interaccion manual con el libro.
+- **Swap Market (Orderbook)**: Muestra las ordenes individuales. Puedes ser taker (ejecutar contra ordenes existentes, fee 0.2%) o maker (publicar tu propia orden, fee 0%).
 
-**IMPORTANTE**: El script inline de este skill consulta el **orderbook publico**, NO el dealer del Instant Swap. El dealer no tiene API publica sin wallet conectado. Los precios pueden diferir:
-- A veces el Instant Swap da mejor precio que el orderbook (el dealer optimiza internamente)
-- A veces el orderbook da mejor precio (hay makers con spreads muy bajos)
-- La diferencia tipica es 0.05-0.15%
+**Ambos usan el mismo orderbook y la misma fee 0.2% como taker.** El Instant Swap simplemente automatiza la ejecucion.
 
-**Al presentar resultados, siempre aclarar**: "Este es el precio del orderbook (Swap Market). El Instant Swap puede variar ligeramente — compara en la app antes de ejecutar."
+**NOTA**: El script inline de este skill consulta el orderbook publico. Los resultados deben coincidir con lo que muestra el Instant Swap en la app. Si hay diferencias menores, es por variacion temporal del orderbook entre la consulta y la ejecucion.
 
 ## How to Present Results
 
@@ -24,7 +21,7 @@ After running the orderbook script, present a clean summary to the user:
    - Taker fee: 0.2% on BTC received and approximate dollar amount
    - Total cost: combined percentage vs index
 3. **Result**: Net BTC received and effective price per BTC
-4. **Nota**: Aclarar que es precio del orderbook y que el Instant Swap puede variar
+4. **Nota**: El resultado debe coincidir con el Instant Swap de la app (mismo orderbook, misma fee 0.2%)
 
 ## Supported Markets
 
