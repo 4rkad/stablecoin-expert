@@ -1,5 +1,19 @@
 # SideSwap — Core Reference (Presentation, Markets, API, Fees, Tools)
 
+## Instant Swap vs Swap Market (Orderbook)
+
+SideSwap tiene DOS mecanismos de swap diferentes:
+
+- **Instant Swap**: Dealer del servidor. Quote fijo, ejecucion inmediata. El usuario ve "Send X / Receive Y / Price Z" en la app. No requiere esperar. El precio incluye spread + fee 0.2% todo junto.
+- **Swap Market (Orderbook)**: Ordenes publicas de makers. El taker elige ejecutar contra ordenes visibles. Fee 0.2% sobre BTC + spread variable segun orderbook.
+
+**IMPORTANTE**: El script inline de este skill consulta el **orderbook publico**, NO el dealer del Instant Swap. El dealer no tiene API publica sin wallet conectado. Los precios pueden diferir:
+- A veces el Instant Swap da mejor precio que el orderbook (el dealer optimiza internamente)
+- A veces el orderbook da mejor precio (hay makers con spreads muy bajos)
+- La diferencia tipica es 0.05-0.15%
+
+**Al presentar resultados, siempre aclarar**: "Este es el precio del orderbook (Swap Market). El Instant Swap puede variar ligeramente — compara en la app antes de ejecutar."
+
 ## How to Present Results
 
 After running the orderbook script, present a clean summary to the user:
@@ -10,6 +24,7 @@ After running the orderbook script, present a clean summary to the user:
    - Taker fee: 0.2% on BTC received and approximate dollar amount
    - Total cost: combined percentage vs index
 3. **Result**: Net BTC received and effective price per BTC
+4. **Nota**: Aclarar que es precio del orderbook y que el Instant Swap puede variar
 
 ## Supported Markets
 
