@@ -2,27 +2,23 @@
 
 ---
 
-## Guia A: BTC → L-USDT via Boltz + SideSwap (con Jade)
+## Guia A: BTC → L-USDT via SideSwap peg-in (RUTA PRINCIPAL)
 
-**Tiempo total:** ~5-10 minutos
-**Coste:** ~0.38% (instant) o ~0.20-0.25% (maker)
-**Necesitas:** Sparrow Wallet, SideSwap, Jade (o cualquier wallet BTC)
+**Tiempo total:** ~15-20 minutos (2 conf BTC + swap instantaneo)
+**Coste:** ~0.38-0.48% (instant) o ~0.20-0.30% (maker)
+**Necesitas:** Sparrow Wallet, SideSwap, hardware wallet recomendado
 
-### Paso 1: Obtener L-BTC via Boltz
-1. Abrir https://boltz.exchange
-2. Seleccionar **Bitcoin → Liquid** (swap submarino inverso)
-3. Introducir la cantidad de BTC que quieres convertir
-4. En "Direccion Liquid de destino", pegar tu direccion de SideSwap:
-   - Abrir SideSwap → Recibir → L-BTC → Copiar direccion
-5. Verificar la direccion comparando primeros y ultimos caracteres
-6. Boltz genera una direccion BTC temporal
-7. Enviar BTC desde Sparrow a esa direccion:
-   - En Sparrow: Send → Pegar direccion Boltz → Importe exacto
+### Paso 1: Obtener L-BTC via SideSwap peg-in
+1. Abrir SideSwap → Peg-In
+2. SideSwap genera una direccion BTC de peg-in
+3. Copiar esa direccion
+4. Enviar BTC desde Sparrow a esa direccion:
+   - En Sparrow: Send → Pegar direccion peg-in → Importe
    - Ajustar fee (~1-2 sat/vbyte si no hay urgencia)
    - Firmar con hardware wallet
    - Emitir transaccion
-8. Esperar 1 confirmacion BTC (~10 min)
-9. Boltz ejecuta el swap y L-BTC llega a SideSwap
+5. Esperar 2 confirmaciones BTC (~20 min)
+6. SideSwap adelanta L-BTC sin esperar las 102 conf del peg-in real (fee 0.1%)
 
 ### Paso 2: Swap L-BTC → L-USDT en SideSwap
 
@@ -43,6 +39,33 @@
 ### Resultado
 - L-USDT disponible en SideSwap
 - Puedes enviarlo a HodlHodl para lending o mantenerlo en SideSwap
+
+---
+
+## Guia A-alt: BTC → L-USDT via Boltz + SideSwap (FALLBACK — solo si peg-in no disponible)
+
+**Tiempo total:** ~5-10 minutos
+**Coste:** ~0.48-0.58% (instant)
+**Necesitas:** Sparrow Wallet, SideSwap
+**Cuando usar:** Solo si SideSwap peg-in no esta disponible o no tiene liquidez
+
+### Paso 1: Obtener L-BTC via Boltz
+1. Abrir https://boltz.exchange
+2. Seleccionar **Bitcoin → Liquid** (chain swap)
+3. Introducir la cantidad de BTC que quieres convertir
+4. En "Direccion Liquid de destino", pegar tu direccion de SideSwap:
+   - Abrir SideSwap → Recibir → L-BTC → Copiar direccion
+5. Verificar la direccion comparando primeros y ultimos caracteres
+6. Boltz genera una direccion BTC temporal
+7. Enviar BTC desde Sparrow a esa direccion
+8. Esperar 1 confirmacion BTC (~10 min)
+9. Boltz ejecuta el swap y L-BTC llega a SideSwap
+
+### Paso 2: Swap L-BTC → L-USDT en SideSwap
+(Igual que Guia A, Paso 2)
+
+### Resultado
+- L-USDT disponible en SideSwap
 
 ---
 

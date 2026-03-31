@@ -116,20 +116,19 @@ CIRCUITO COMPLETO LENDING (flujo principal de la mentoria):
 Ejemplo de formato:
 
 ```
-Ruta recomendada: BTC → Boltz → L-BTC → SideSwap Instant → L-USDT
+Ruta recomendada: BTC → SideSwap peg-in → L-BTC → SideSwap Instant → L-USDT
 
 Para 500,000 sats (~$330):
 
 Fee desglosado:
-  1. Tx Bitcoin (envio a Boltz):     ~282 sats (1 sat/vb × ~282 vbytes)
-  2. Boltz servicio (submarine):     500 sats (0.1%)
-  3. Boltz miner fee (Liquid):       19 sats
-  4. SideSwap spread (instant):      ~594 sats (0.18% spread actual)
-  5. SideSwap taker fee:             ~997 sats (0.2%)
+  1. Tx Bitcoin (envio peg-in):      ~141 sats (1 sat/vb × ~141 vbytes)
+  2. SideSwap peg-in fee:            500 sats (0.1%)
+  3. SideSwap spread (instant):      ~594 sats (0.18% spread actual)
+  4. SideSwap taker fee:             ~997 sats (0.2%)
   ─────────────────────────────────────────────
-  TOTAL estimado:                    ~2,392 sats (0.48%)
+  TOTAL estimado:                    ~2,232 sats (0.45%)
 
-Tiempo: ~5 minutos (1 conf BTC + swap instantaneo)
+Tiempo: ~15 minutos (2 conf BTC + swap instantaneo)
 Herramientas: Sparrow + SideSwap
 Privacidad: Alta (Confidential Transactions en Liquid)
 ```
@@ -567,8 +566,8 @@ Estos servicios **no requieren conectar wallet** — el flujo es: pegar direccio
 
 | | Ruta | Fee total | Desglose | Tiempo |
 |---|---|---|---|---|
-| **Principal** | SideSwap peg-in → Instant | ~0.38-0.48% | Peg-in 0.1% + Taker 0.2% + spread | Minutos |
-| Secundaria | Boltz → L-BTC → SideSwap Instant | ~0.48-0.58% | Boltz 0.1% + Taker 0.2% + spread | Minutos |
+| **Principal** | SideSwap peg-in → Instant | ~0.38-0.48% | Peg-in 0.1% + Taker 0.2% + spread | ~15 min |
+| Fallback | Boltz → L-BTC → SideSwap Instant | ~0.48-0.58% | Boltz 0.1% + Taker 0.2% + spread | ~5 min |
 
 ### Fiat → USDC/USDT
 

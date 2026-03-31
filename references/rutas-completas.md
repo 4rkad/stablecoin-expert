@@ -6,10 +6,11 @@
 
 | | Ruta | Fee total | Desglose | Tiempo |
 |---|---|---|---|---|
-| **Principal** | SideSwap peg-in → Instant | ~0.38-0.48% | Peg-in 0.1% + Taker 0.2% + spread | Minutos |
-| Secundaria | Boltz → L-BTC → SideSwap Instant | ~0.48-0.58% | Boltz 0.1% + Taker 0.2% + spread | Minutos |
+| **Principal (SIEMPRE)** | SideSwap peg-in → Instant | ~0.38-0.48% | Peg-in 0.1% + Taker 0.2% + spread | ~15 min |
+| Fallback (solo si peg-in no disponible) | Boltz → L-BTC → SideSwap Instant | ~0.48-0.58% | Boltz 0.1% + Taker 0.2% + spread | ~5 min |
 
 **Notas:**
+- ⚠️ SideSwap peg-in es SIEMPRE la ruta principal para BTC on-chain → Liquid. Boltz es solo fallback.
 - SideSwap peg-in adelanta L-BTC sin esperar 102 conf
 - Boltz solo maneja L-BTC en Liquid, nunca L-USDT. SideSwap es el unico que hace swap L-BTC ↔ L-USDT
 - Taker paga 0.2% + spread. Maker no paga fee pero requiere esperar (no contemplado por rapidez)
@@ -117,7 +118,7 @@
 3. SideSwap adelanta L-BTC
 4. Hacer Instant Swap L-BTC → L-USDT
 
-### Ruta: Boltz → SideSwap (BTC → L-USDT)
+### Ruta FALLBACK: Boltz → SideSwap (BTC → L-USDT) — solo si peg-in no disponible
 1. Ir a boltz.exchange, seleccionar BTC → L-BTC
 2. Enviar BTC desde Sparrow a la direccion de Boltz
 3. Recibir L-BTC en SideSwap
