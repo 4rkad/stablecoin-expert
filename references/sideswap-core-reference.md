@@ -2,14 +2,17 @@
 
 ## Instant Swap vs Swap Market (Orderbook)
 
-SideSwap tiene DOS interfaces para el mismo orderbook:
+SideSwap tiene dos interfaces:
 
-- **Instant Swap**: Toma automaticamente las mejores ordenes del orderbook. El usuario ve "Send X / Receive Y / Price Z" en la app. Fee 0.2% como taker. Rapido, sin interaccion manual con el libro.
-- **Swap Market (Orderbook)**: Muestra las ordenes individuales. Puedes ser taker (ejecutar contra ordenes existentes, fee 0.2%) o maker (publicar tu propia orden, fee 0%).
+- **Instant Swap**: Quote automatico. El usuario ve "Deliver X / Receive Y / Price Z". Rapido.
+- **Swap Market (Orderbook)**: Ordenes publicas de makers visibles en sideswap.io y via API WebSocket. Puedes ser taker (fee 0.2%) o maker (fee 0%).
 
-**Ambos usan el mismo orderbook y la misma fee 0.2% como taker.** El Instant Swap simplemente automatiza la ejecucion.
+**Observacion** (2026-03-31, venta 0.1 BTC):
+- Orderbook best bid: $67,507 → ~$6,737 USDt neto
+- Instant Swap: $67,261 → $6,725 USDt neto
+- Diferencia: ~$12 (~0.17%) a favor del orderbook
 
-**NOTA**: El script inline de este skill consulta el orderbook publico. Los resultados deben coincidir con lo que muestra el Instant Swap en la app. Si hay diferencias menores, es por variacion temporal del orderbook entre la consulta y la ejecucion.
+El script inline de este skill consulta el **orderbook publico** (Swap Market). Al presentar resultados, aclarar que el Instant Swap puede dar un precio ligeramente diferente.
 
 ## How to Present Results
 
