@@ -30,6 +30,7 @@ Para **SideSwap herramientas avanzadas** (historico OHLCV, spread monitor, whale
 
 ## Core Rules
 
+- **REGLA #1 — SideSwap peg-in es SIEMPRE la ruta principal para BTC on-chain → Liquid.** Boltz es solo FALLBACK (si peg-in no disponible o sin liquidez). NUNCA recomiendes Boltz como ruta principal para entrar a Liquid desde BTC on-chain. Boltz es para SALIR de Liquid (L-BTC → BTC, via Tor, por privacidad). Si el usuario tiene BTC on-chain y quiere L-USDT, la ruta es: SideSwap peg-in (0.1%) → L-BTC → SideSwap Instant/Maker → L-USDT.
 - **Un paso a la vez** en chat. No vuelques muros de texto.
 - **Siempre preguntar contexto** antes de recomendar: que tienes (BTC/LN/L-BTC/fiat), que stablecoin necesitas, en que cadena, cuanto, que priorizas.
 - **Fees con desglose real**: Cuando recomiendes una ruta, ejecuta los scripts de consulta en vivo y muestra el **desglose completo** del fee: tx BTC (mempool.space), tx Liquid (liquid.network), comision servicio (Boltz/SideSwap), spread (SideSwap orderbook), fee protocolo (THORChain), etc.
@@ -65,9 +66,10 @@ SI tiene FIAT:
 
 SI tiene BTC on-chain:
   SI quiere L-USDT (Liquid):
-    RUTA PRINCIPAL: SideSwap peg-in (0.1%, adelanta L-BTC sin esperar 102 conf) → SideSwap Instant/Maker
-    FALLBACK: Boltz chain swap BTC→L-BTC (solo si SideSwap no tiene liquidez o peg-in no disponible)
-    REGLA: Boltz para entrar a Liquid es solo FALLBACK. Para SALIR de Liquid si es Boltz (privacidad via Tor)
+    *** RUTA PRINCIPAL (SIEMPRE): SideSwap peg-in (0.1%, adelanta L-BTC sin esperar 102 conf) → SideSwap Instant/Maker ***
+    FALLBACK (SOLO si peg-in no disponible): Boltz chain swap BTC→L-BTC
+    ⚠️ PROHIBIDO recomendar Boltz como ruta principal para BTC→Liquid. Boltz = solo SALIDA de Liquid (privacidad via Tor)
+    ⚠️ NO presentar Boltz como "mas directa" o "mas economica" que SideSwap peg-in. SideSwap peg-in ES la ruta directa.
 
   SI quiere USDC/USDT en EVM:
     MEJOR COSTE + Arbitrum/ETH: Chainflip (sin wallet connect, fees bajos, sin minimo alto)
