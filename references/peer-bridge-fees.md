@@ -53,7 +53,7 @@ The Relay quote response contains exact fees in `fees.relayer` and `fees.gas`, p
 Peer + Relay.link support **native BTC on the Bitcoin network** — not wrapped tokens. The flow:
 1. USDC released from escrow on Base
 2. Relay.link swaps USDC -> BTC and sends to the user's `bc1...` address
-3. Total cost = spread + manager fee (0-0.1%) + Relay fee (~0.024%)
+3. Total cost = spread + manager fee (0-0.1%) + Relay fee (variable — ALWAYS query Relay API for real-time quote, see below)
 4. Time: ~4-6 minutes total
 
 ## ON-CHAIN FINDINGS (verified 2026-03-29)
@@ -70,7 +70,7 @@ Peer + Relay.link support **native BTC on the Bitcoin network** — not wrapped 
 
 - **Peer does NOT charge any markup on bridge fees** — AcrossBridgeHook passes 100% of USDC to the SpokePool without retaining any amount (verified in contract code + on-chain tx traces)
 - **Bitcoin chainId in Across on-chain**: `34268394551451` (different from Relay API's `8253038` — the API abstracts this)
-- **Relay bridge fee measured from 13 real transactions**: ~0.024% average
+- **Relay bridge fee**: variable — always query `POST https://api.relay.link/quote/v2` for real-time fee. Observed ~0.18% on $500 USDC→BTC (2026-04-02). The old 0.024% estimate from 13 txs was incorrect
 - **Stats week of 22-29 Mar 2026**: 860 trades, $239K volume, 0 bridges to BTC (all USDC on Base)
 - All bridge operations are via Across Protocol relayers — optimistic model with UMA Oracle dispute resolution
 
